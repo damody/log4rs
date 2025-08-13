@@ -1,0 +1,55 @@
+# MQTT appender configuration example
+refresh_rate: 30 seconds
+
+appenders:
+  # Console appender for local output
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{d(%Y-%m-%d %H:%M:%S)} [{l}] {t} - {m}{n}"
+
+  # MQTT appender for remote logging
+  mqtt:
+    kind: mqtt
+    broker: "mqtt://localhost:1883"
+    client_id: "log4rs_example"
+    topic: "logs/{level}"  # {level} will be replaced with actual log level
+    qos: 1  # 0: At most once, 1: At least once, 2: Exactly once
+    # username: "mqtt_user"  # Optional: uncomment if authentication is required
+    # password: "mqtt_pass"  # Optional: uncomment if authentication is required
+    encoder:
+      pattern: "{d} {l} {t} - {m}{n}"
+
+  # MQTT appender for error logs with different topic
+  mqtt_errors:
+    kind: mqtt
+    broker: "mqtt://localhost:1883"
+    client_id: "log4rs_errors"
+    topic: "critical/errors"
+    qos: 2  # Higher QoS for critical errors
+    encoder:
+      pattern: "{d(%Y-%m-%dT%H:%M:%S%.3f)} ERROR {t} - {m}{n}"
+
+# Root logger configuration
+root:
+  level: info
+  appenders:
+    - stdout
+    - mqtt
+
+# Logger configuration for specific modules
+loggers:
+  # Example of module-specific configuration
+  my_app::database:
+    level: debug
+    appenders:
+      - stdout
+    additive: false  # Don't send to root appenders
+
+  # Send only errors to special MQTT topic
+  my_app::critical:
+    level: error
+    appenders:
+      - mqtt_errors
+      - stdout
+    additive: false

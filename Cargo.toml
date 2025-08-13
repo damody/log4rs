@@ -29,6 +29,7 @@ toml_format = ["toml"]
 console_appender = ["console_writer", "simple_writer", "pattern_encoder"]
 file_appender = ["parking_lot", "simple_writer", "pattern_encoder"]
 rolling_file_appender = ["parking_lot", "simple_writer", "pattern_encoder"]
+mqtt_appender = ["rumqttc", "simple_writer", "pattern_encoder"]
 compound_policy = []
 delete_roller = []
 fixed_window_roller = []
@@ -63,6 +64,7 @@ all_components = [
     "json_encoder",
     "pattern_encoder",
     "threshold_filter",
+    "mqtt_appender",
 ]
 
 gzip = ["flate2"]
@@ -96,6 +98,7 @@ anyhow = "1.0.28"
 derive_more = { version = "2.0.1", features = ["debug"] }
 mock_instant = "0.6"
 unicode-segmentation = "1.10.0"
+rumqttc = { version = "0.24", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", optional = true, features = [
@@ -158,6 +161,10 @@ required-features = ["yaml_format", "config_parsing"]
 [[example]]
 name = "custom_config"
 required-features = ["yaml_format", "config_parsing"]
+
+[[example]]
+name = "mqtt_debug_test"
+required-features = ["mqtt_appender", "yaml_format", "config_parsing"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(mock_time)'] }

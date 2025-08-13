@@ -20,6 +20,8 @@ pub mod console;
 pub mod file;
 #[cfg(feature = "rolling_file_appender")]
 pub mod rolling_file;
+#[cfg(feature = "mqtt_appender")]
+pub mod mqtt;
 
 #[cfg(any(feature = "file_appender", feature = "rolling_file_appender"))]
 mod env_util {
