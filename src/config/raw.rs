@@ -234,6 +234,9 @@ impl Default for Deserializers {
         #[cfg(feature = "threshold_filter")]
         d.insert("threshold", filter::threshold::ThresholdFilterDeserializer);
 
+        #[cfg(feature = "mqtt_appender")]
+        d.insert("mqtt", append::mqtt::MqttAppenderDeserializer);
+
         d
     }
 }
