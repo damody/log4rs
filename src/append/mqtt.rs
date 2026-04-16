@@ -170,13 +170,13 @@ impl MqttAppenderBuilder {
             // Handle connection events
             for notification in connection.iter() {
                 match notification {
-                    Ok(Event::Incoming(Packet::ConnAck(connack))) => {
+                    Ok(Event::Incoming(Packet::ConnAck(_connack))) => {
                     }
-                    Ok(Event::Incoming(packet)) => {
+                    Ok(Event::Incoming(_packet)) => {
                     }
-                    Ok(Event::Outgoing(packet)) => {
+                    Ok(Event::Outgoing(_packet)) => {
                     }
-                    Err(e) => {
+                    Err(_e) => {
                         // Connection will automatically retry
                     }
                 }
