@@ -52,19 +52,16 @@ impl Append for MqttAppender {
         // Format the log message using the encoder
         let mut buffer = MqttBuffer::new();
         self.encoder.encode(&mut buffer, record)?;
-        
+
         // Replace {level} in topic if present
-        let topic = self.topic_template
+        let topic = self
+            .topic_template
             .replace("{level}", &record.level().to_string().to_lowercase());
         // Send the message
         let client = self.client.lock();
         match client.publish(&topic, self.qos, false, buffer.0) {
-            Ok(_) => {
-                Ok(())
-            }
-            Err(e) => {
-                Err(e.into())
-            }
+            Ok(_) => Ok(()),
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -155,34 +152,31 @@ impl MqttAppenderBuilder {
         // Create MQTT options
         let mut mqtt_options = MqttOptions::new(self.client_id.clone(), host, port);
         mqtt_options.set_keep_alive(Duration::from_secs(30));
-        
+
         // Set credentials if provided
         if let (Some(ref username), Some(ref password)) = (self.username, self.password) {
             mqtt_options.set_credentials(username.clone(), password.clone());
         }
-        
+
         // Create sync client and connection
         let (client, mut connection) = Client::new(mqtt_options, 10);
         let client = Arc::new(Mutex::new(client));
-                
+
         // Start connection handler in background thread
         thread::spawn(move || {
             // Handle connection events
             for notification in connection.iter() {
                 match notification {
-                    Ok(Event::Incoming(Packet::ConnAck(_connack))) => {
-                    }
-                    Ok(Event::Incoming(_packet)) => {
-                    }
-                    Ok(Event::Outgoing(_packet)) => {
-                    }
+                    Ok(Event::Incoming(Packet::ConnAck(_connack))) => {}
+                    Ok(Event::Incoming(_packet)) => {}
+                    Ok(Event::Outgoing(_packet)) => {}
                     Err(_e) => {
                         // Connection will automatically retry
                     }
                 }
             }
         });
-        
+
         Ok(MqttAppender {
             client,
             topic_template: self.topic,
@@ -196,15 +190,17 @@ impl MqttAppenderBuilder {
 
 fn parse_broker_url(url: &str) -> io::Result<(String, u16)> {
     // Remove protocol prefix if present
-    let url = url.trim_start_matches("mqtt://")
+    let url = url
+        .trim_start_matches("mqtt://")
         .trim_start_matches("mqtts://")
         .trim_start_matches("tcp://");
-    
+
     // Split host and port
     if let Some(colon_pos) = url.rfind(':') {
         let host = url[..colon_pos].to_string();
         let port_str = &url[colon_pos + 1..];
-        let port = port_str.parse::<u16>()
+        let port = port_str
+            .parse::<u16>()
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidInput, "Invalid port number"))?;
         Ok((host, port))
     } else {
@@ -275,15 +271,15 @@ impl Deserialize for MqttAppenderDeserializer {
             .topic(config.topic)
             .username(config.username)
             .password(config.password);
-        
+
         if let Some(qos) = config.qos {
             builder = builder.qos(qos);
         }
-        
+
         if let Some(encoder) = config.encoder {
             builder = builder.encoder(deserializers.deserialize(&encoder.kind, encoder.config)?);
         }
-        
+
         Ok(Box::new(builder.build()?))
     }
 }
